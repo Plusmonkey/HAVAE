@@ -24,100 +24,6 @@ def slice(x, start, end):
     return x[:, start:end]
 
 
-# def create_vaerl2(activation='tanh', use_bias=True, units=200, latent_dim=100, epsilon_std=1.0, alpha=1.0, beta=1.0):
-#     doc_dim = 125
-#     pho_dim = 125
-#     input_shape_doc = doc_dim
-#     input_shape_pho = pho_dim
-#
-#     # Input
-#     x_doc = Input(shape=(doc_dim,))
-#     x_doc_ = Dense(units=doc_dim, activation=activation, use_bias=use_bias)(x_doc)
-#     x_pho = Input(shape=(pho_dim,))
-#     x_pho_ = Dense(units=pho_dim, activation=activation, use_bias=use_bias)(x_pho)
-#
-#     # Attention Model
-#     x_a = concatenate([x_doc_, x_pho_])
-#     attention = Dense(units=doc_dim + pho_dim)(x_a)
-#     x_r = multiply([x_a, attention])
-#
-#     # VAE model
-#     x = Dense(units=units, activation=activation, use_bias=use_bias)(x_r)
-#     encoder = Dense(units=units, activation=activation, use_bias=use_bias)(x)
-#     z_mean = Dense(units=latent_dim, activation=activation, use_bias=use_bias, name='output')(encoder)
-#     z_log_var = Dense(units=latent_dim, activation=activation, use_bias=use_bias)(encoder)
-#
-#     def sampling(args):
-#         z_mean, z_log_var = args
-#         epsilon = K.random_normal(shape=(K.shape(z_mean)[0], latent_dim), mean=0.,
-#                                   stddev=epsilon_std)
-#         return z_mean + K.exp(z_log_var / 2) * epsilon
-#
-#     z = Lambda(sampling)([z_mean, z_log_var])
-#
-#     decoder = Dense(units=units, activation=activation, use_bias=use_bias)(z)
-#     _x = Dense(units=units, activation=activation, use_bias=use_bias)(decoder)
-#
-#     # dimension increase
-#     _x_r = Dense(units=input_shape_doc + input_shape_pho, activation=activation, use_bias=use_bias)(_x)
-#
-#     # Attention Model
-#     _attention = Dense(units=input_shape_doc + input_shape_pho)(_x_r)
-#     _x_a = multiply([_x_r, _attention])
-#
-#     # Output
-#     _x_doc_ = Lambda(slice, arguments={'start': 0, 'end': 125})(_x_a)
-#     _x_doc = Dense(units=doc_dim, activation=activation, use_bias=use_bias)(_x_doc_)
-#     _x_pho_ = Lambda(slice, arguments={'start': 125, 'end': 250})(_x_a)
-#     _x_pho = Dense(units=pho_dim, activation=activation, use_bias=use_bias)(_x_pho_)
-#
-#     y = Input(shape=(1,), name='y_in')
-#     sig = Dense(1, activation='sigmoid', use_bias=use_bias)(z_mean)
-#
-#     # Label loss
-#     def loss(args):
-#         x, y = args
-#         loss = objectives.binary_crossentropy(x, y)
-#         return loss
-#
-#     label_loss = Lambda(loss)([y, sig])
-#
-#     # Vae loss
-#     x_doc_loss = Lambda(loss)([x_doc, _x_doc])
-#     x_pho_loss = Lambda(loss)([x_pho, _x_pho])
-#
-#     def vae_loss(args):
-#         x, y = args
-#         kl_loss = - 0.5 * K.mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
-#         xent_loss = x + y
-#         return xent_loss + kl_loss
-#
-#     vae_loss = Lambda(vae_loss)([x_doc_loss, x_pho_loss])
-#
-#     # Custom loss layer
-#     class CustomVariationalLayer(Layer):
-#         def __init__(self, **kwargs):
-#             self.is_placeholder = True
-#             super(CustomVariationalLayer, self).__init__(**kwargs)
-#
-#         def loss(self, x, y):
-#             return K.mean(alpha * x + beta * y)
-#
-#         def call(self, inputs):
-#             x = inputs[0]
-#             y = inputs[1]
-#             loss = self.loss(x, y)
-#             self.add_loss(loss, inputs=inputs)
-#
-#             return x
-#
-#     L = CustomVariationalLayer()([label_loss, vae_loss])
-#
-#     vae = Model(outputs=L, inputs=[x_doc, x_pho, y])
-#     vae.load_weights(weights_fname)
-#     vae_sig = Model(inputs=[x_doc, x_pho], outputs=sig)
-#     return vae_sig
-
 
 class CustomVariationalLayer(Layer):
     def __init__(self, paras, **kwargs):
@@ -307,7 +213,7 @@ f.close()
 create_songs = []
 create_song_length = 16
 
-create_models = ['VaeRL2']
+create_models = ['HAVAE']
 
 for create_model in create_models:
     asvae = create_vaerl2()
